@@ -11,28 +11,28 @@ class ApiService {
 
   /// Base URL de la API
   String get baseUrl {
-    // 1. Permite configurar la IP desde consola al compilar con:
-    // flutter build apk --dart-define=API_URL=http://ip-del-servidor:4001
     const String envUrl = String.fromEnvironment('API_URL');
-    if (envUrl.isNotEmpty) return envUrl;
-
-    // 2. Si la app está en producción (release), usa la IP de tu servidor:
-    if (kReleaseMode) {
-      // TODO: Reemplazar con la IP o dominio real de tu servidor
-      return 'http://82.39.109.74:4001'; 
+    if (envUrl.isNotEmpty) {
+      print('Mobile: Usando API_URL de entorno: $envUrl');
+      return envUrl;
     }
 
-    // 3. Si la app está en desarrollo (debug), usa tu IP local:
+    // IP del servidor en la VPN (82.39.109.74)
+    // IMPORTANT: El dispositivo/emulador debe estar conectado a la misma VPN.
+    const String defaultIp = 'http://82.39.109.74:4001';
+
+    if (kReleaseMode) return defaultIp;
+
     if (kIsWeb) return 'http://localhost:4001';
-    try {
-      if (Platform.isAndroid) return 'http://82.39.109.74:4001'; //'http://192.168.0.2:4001';  
-    } catch (_) {}
     
-    return 'http://localhost:4001';
+    // Si usas emulador de Android y quieres conectar a tu PC local: 'http://10.0.2.2:4001'
+    // Para conectar al backend en la VPN:
+    return defaultIp;
   }
 
   Future<T> _get<T>(String path, T Function(dynamic json) parse) async {
     final uri = Uri.parse('$baseUrl$path');
+    print('Mobile: GET Request a: $uri');
     try {
       final response = await http.get(uri).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
@@ -41,9 +41,11 @@ class ApiService {
       } else {
         throw Exception('Error ${response.statusCode}: ${response.body}');
       }
-    } on SocketException {
-      throw Exception('No se pudo conectar al servidor. ¿Está corriendo el backend?');
+    } on SocketException catch (e) {
+      print('Mobile: SocketException al conectar a $uri: $e');
+      throw Exception('No se pudo conectar al servidor ($uri). ¿Estás conectado a la VPN?');
     } catch (e) {
+      print('Mobile: Error de red inesperado en $uri: $e');
       throw Exception('Error de red: $e');
     }
   }

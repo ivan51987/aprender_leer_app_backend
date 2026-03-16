@@ -407,11 +407,13 @@ app.post("/api/ninos", async (req, res) => {
 
     const trimmedName = nombre.trim();
 
-    // Check if child already exists
-    const checkResult = await pool.query(
-      "SELECT id, nombre FROM ninos WHERE nombre ILIKE $1",
-      [trimmedName],
-    );
+    // Check if child already exists (accent and case insensitive)
+    const normalizedQuery = `
+      SELECT id, nombre FROM ninos 
+      WHERE TRANSLATE(LOWER(nombre), 'áéíóúüÁÉÍÓÚÜñÑ', 'aeiouuaeiounn') = 
+            TRANSLATE(LOWER($1), 'áéíóúüÁÉÍÓÚÜñÑ', 'aeiouuaeiounn')
+    `;
+    const checkResult = await pool.query(normalizedQuery, [trimmedName]);
 
     if (checkResult.rows.length > 0) {
       console.log(
