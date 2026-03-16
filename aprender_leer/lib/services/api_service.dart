@@ -12,23 +12,23 @@ class ApiService {
   /// Base URL de la API
   String get baseUrl {
     // 1. Permite configurar la IP desde consola al compilar con:
-    // flutter build apk --dart-define=API_URL=http://ip-del-servidor:4000
+    // flutter build apk --dart-define=API_URL=http://ip-del-servidor:4001
     const String envUrl = String.fromEnvironment('API_URL');
     if (envUrl.isNotEmpty) return envUrl;
 
     // 2. Si la app está en producción (release), usa la IP de tu servidor:
     if (kReleaseMode) {
       // TODO: Reemplazar con la IP o dominio real de tu servidor
-      return 'http://82.39.109.74:4000'; 
+      return 'http://82.39.109.74:4001'; 
     }
 
     // 3. Si la app está en desarrollo (debug), usa tu IP local:
-    if (kIsWeb) return 'http://localhost:4000';
+    if (kIsWeb) return 'http://localhost:4001';
     try {
-      if (Platform.isAndroid) return 'http://82.39.109.74:4000'; //'http://192.168.0.2:4000';  
+      if (Platform.isAndroid) return 'http://82.39.109.74:4001'; //'http://192.168.0.2:4001';  
     } catch (_) {}
     
-    return 'http://localhost:4000';
+    return 'http://localhost:4001';
   }
 
   Future<T> _get<T>(String path, T Function(dynamic json) parse) async {

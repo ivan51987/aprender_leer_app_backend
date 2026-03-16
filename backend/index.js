@@ -254,7 +254,13 @@ app.get("/api/game/quiz/:categoryId", (req, res) => {
 app.post("/api/scores", async (req, res) => {
   try {
     const { nino_id, categoria, juego_tipo, puntuacion, estrellas } = req.body;
-    console.log("Backend: Recibida puntuación:", { nino_id, categoria, juego_tipo, puntuacion, estrellas });
+    console.log("Backend: Recibida puntuación:", {
+      nino_id,
+      categoria,
+      juego_tipo,
+      puntuacion,
+      estrellas,
+    });
 
     if (!nino_id || !categoria || puntuacion === undefined) {
       console.log("Backend: Faltan campos en puntuación");
@@ -272,7 +278,13 @@ app.post("/api/scores", async (req, res) => {
         fecha = CURRENT_TIMESTAMP
       RETURNING id
     `;
-    const result = await pool.query(query, [nino_id, categoria, juego_tipo, puntuacion, estrellas]);
+    const result = await pool.query(query, [
+      nino_id,
+      categoria,
+      juego_tipo,
+      puntuacion,
+      estrellas,
+    ]);
     res.json({ success: true, score_id: result.rows[0].id });
   } catch (error) {
     console.error("Backend: Error saving score:", error);
@@ -291,7 +303,7 @@ app.get("/api/ninos/:id/mastered-words", async (req, res) => {
        FROM puntuaciones 
        WHERE nino_id = $1 AND puntuacion >= 80
        LIMIT 50`,
-      [id]
+      [id],
     );
     res.json({ mastered: result.rows });
   } catch (error) {
@@ -303,11 +315,11 @@ app.get("/api/ninos/:id/mastered-words", async (req, res) => {
 app.get("/api/ninos/:id/stats", async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Get total score and stars for level and gems
     const scoreResult = await pool.query(
       "SELECT SUM(puntuacion) as total_score, SUM(estrellas) as total_stars FROM puntuaciones WHERE nino_id = $1",
-      [id]
+      [id],
     );
 
     const totalPoints = parseInt(scoreResult.rows[0].total_score || 0);
@@ -315,25 +327,26 @@ app.get("/api/ninos/:id/stats", async (req, res) => {
 
     // Calculate level (10 stars per level)
     const level = Math.floor(totalStars / 10) + 1;
-    
+
     // Calculate gems: each star gives 5 gems + bonus from rewards
     const learnedResult = await pool.query(
       "SELECT COUNT(*) as learned_count FROM aprendidos WHERE nino_id = $1",
-      [id]
+      [id],
     );
     const rewardResult = await pool.query(
       "SELECT SUM(cantidad) as total_bonus FROM recompensas WHERE nino_id = $1",
-      [id]
+      [id],
     );
-    
+
     const learnedCount = parseInt(learnedResult.rows[0].learned_count || 0);
     const totalBonus = parseInt(rewardResult.rows[0].total_bonus || 0);
 
     // Gem formula: (Stars * 5) + (Learned Items * 5) + Bonus rewards
-    const gems = (totalStars * 5) + (learnedCount * 5) + totalBonus;
+    const gems = totalStars * 5 + learnedCount * 5 + totalBonus;
 
     // Calculate streak
-    const streakResult = await pool.query(`
+    const streakResult = await pool.query(
+      `
       WITH dates AS (
         SELECT DISTINCT DATE_TRUNC('day', fecha) as day
         FROM puntuaciones
@@ -353,17 +366,22 @@ app.get("/api/ninos/:id/stats", async (req, res) => {
       WHERE last_day >= CURRENT_DATE - INTERVAL '1 day'
       ORDER BY last_day DESC
       LIMIT 1
-    `, [id]);
+    `,
+      [id],
+    );
 
-    const streak = streakResult.rows.length > 0 ? parseInt(streakResult.rows[0].streak_length) : 0;
+    const streak =
+      streakResult.rows.length > 0
+        ? parseInt(streakResult.rows[0].streak_length)
+        : 0;
 
     // Get mastery
     const masteryResult = await pool.query(
       "SELECT categoria, MAX(estrellas) as max_stars FROM puntuaciones WHERE nino_id = $1 GROUP BY categoria",
-      [id]
+      [id],
     );
     const category_progress = {};
-    masteryResult.rows.forEach(row => {
+    masteryResult.rows.forEach((row) => {
       category_progress[row.categoria] = parseInt(row.max_stars);
     });
 
@@ -372,7 +390,7 @@ app.get("/api/ninos/:id/stats", async (req, res) => {
       gems,
       streak,
       total_points: totalPoints,
-      category_progress
+      category_progress,
     });
   } catch (error) {
     console.error("Error fetching stats:", error);
@@ -388,23 +406,31 @@ app.post("/api/ninos", async (req, res) => {
     }
 
     const trimmedName = nombre.trim();
-    
+
     // Check if child already exists
     const checkResult = await pool.query(
       "SELECT id, nombre FROM ninos WHERE nombre ILIKE $1",
-      [trimmedName]
+      [trimmedName],
     );
 
     if (checkResult.rows.length > 0) {
-      console.log(`Backend: Niño existente encontrado: ${trimmedName} (ID: ${checkResult.rows[0].id})`);
-      return res.json({ success: true, child: checkResult.rows[0], existing: true });
+      console.log(
+        `Backend: Niño existente encontrado: ${trimmedName} (ID: ${checkResult.rows[0].id})`,
+      );
+      return res.json({
+        success: true,
+        child: checkResult.rows[0],
+        existing: true,
+      });
     }
 
     const result = await pool.query(
       "INSERT INTO ninos (nombre) VALUES ($1) RETURNING id, nombre",
       [trimmedName],
     );
-    console.log(`Backend: Nuevo niño registrado: ${trimmedName} (ID: ${result.rows[0].id})`);
+    console.log(
+      `Backend: Nuevo niño registrado: ${trimmedName} (ID: ${result.rows[0].id})`,
+    );
     res.json({ success: true, child: result.rows[0], existing: false });
   } catch (error) {
     console.error("Backend: Error registrando/buscando niño:", error);
@@ -423,19 +449,27 @@ app.post("/api/ninos/:id/learn", async (req, res) => {
   try {
     const check = await pool.query(
       "SELECT id FROM aprendidos WHERE nino_id = $1 AND item_texto = $2",
-      [id, item]
+      [id, item],
     );
 
     if (check.rows.length > 0) {
-      return res.json({ success: true, message: "Already learned", newlyLearned: false });
+      return res.json({
+        success: true,
+        message: "Already learned",
+        newlyLearned: false,
+      });
     }
 
     await pool.query(
       "INSERT INTO aprendidos (nino_id, item_texto, categoria) VALUES ($1, $2, $3)",
-      [id, item, category]
+      [id, item, category],
     );
 
-    res.json({ success: true, message: "Item learned! +5 gems", newlyLearned: true });
+    res.json({
+      success: true,
+      message: "Item learned! +5 gems",
+      newlyLearned: true,
+    });
   } catch (error) {
     console.error("Error saving learned item:", error);
     res.status(500).json({ error: "Error del servidor" });
@@ -454,9 +488,9 @@ app.get("/api/leaderboard", async (req, res) => {
       LIMIT 5
     `;
     const result = await pool.query(query);
-    const leaderboard = result.rows.map(row => ({
+    const leaderboard = result.rows.map((row) => ({
       ...row,
-      level: Math.floor(parseInt(row.total_stars) / 10) + 1
+      level: Math.floor(parseInt(row.total_stars) / 10) + 1,
     }));
     res.json(leaderboard);
   } catch (error) {
@@ -500,7 +534,7 @@ app.post("/api/ninos/:id/reward", async (req, res) => {
   try {
     await pool.query(
       "INSERT INTO recompensas (nino_id, tipo, cantidad) VALUES ($1, $2, $3)",
-      [id, type, amount]
+      [id, type, amount],
     );
     res.json({ success: true, message: `Reward added: ${amount} gems` });
   } catch (error) {
@@ -513,7 +547,7 @@ const config = loadConfig();
 const mp3Root = path.resolve(process.cwd(), config.outputRoot ?? "mp3");
 app.use("/mp3", express.static(mp3Root));
 
-const PORT = 4000;
+const PORT = 4001;
 const HOST = "0.0.0.0";
 
 app.listen(PORT, HOST, () => {
