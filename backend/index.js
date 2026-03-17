@@ -550,7 +550,7 @@ const mp3Root = path.resolve(process.cwd(), config.outputRoot ?? "mp3");
 app.use("/mp3", express.static(mp3Root));
 
 const PORT = 4001;
-const HOST = "82.39.109.74";
+const HOST = "0.0.0.0";
 
 app.listen(PORT, HOST, () => {
   console.log(`Backend corriendo en http://${HOST}:${PORT}`);
