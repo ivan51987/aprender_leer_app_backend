@@ -12,29 +12,42 @@ class ApiService {
   /// Base URL de la API
   String get baseUrl {
     const String envUrl = String.fromEnvironment('API_URL');
-    if (envUrl.isNotEmpty) {
-      print('Mobile: Usando API_URL de entorno: $envUrl');
-      return envUrl;
-    }
+    if (envUrl.isNotEmpty) return envUrl;
 
-    // IP del servidor en la VPN (82.39.109.74)
-    // IMPORTANT: El dispositivo/emulador debe estar conectado a la misma VPN.
-    const String defaultIp = 'http://82.39.109.74:4001';
-
-    if (kReleaseMode) return defaultIp;
-
-    if (kIsWeb) return 'http://localhost:4001';
+    // --- CONFIGURACIÓN DE IP ---
+    // Cambia aquí según tu necesidad:
+    // 1. VPN: '82.39.109.74'
+    // 2. Local PC: '192.168.0.2'
+    // 3. Emulador viendo a PC: '10.0.2.2'
+    const String targetIp = '82.39.109.74'; 
+    const String port = '4001';
     
-    // Si usas emulador de Android y quieres conectar a tu PC local: 'http://10.0.2.2:4001'
-    // Para conectar al backend en la VPN:
-    return defaultIp;
+    return 'http://$targetIp:$port';
+  }
+
+  /// Verifica si el servidor es alcanzable
+  Future<bool> checkHealth() async {
+    final uri = Uri.parse('$baseUrl/api/health');
+    print('Mobile: Verificando salud del servidor en $uri...');
+    try {
+      final response = await http.get(uri).timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        print('Mobile: Salud OK: ${response.body}');
+        return true;
+      }
+      print('Mobile: Salud fallida con status: ${response.statusCode}');
+      return false;
+    } catch (e) {
+      print('Mobile: Error en Health Check a $uri: $e');
+      return false;
+    }
   }
 
   Future<T> _get<T>(String path, T Function(dynamic json) parse) async {
     final uri = Uri.parse('$baseUrl$path');
     print('Mobile: GET Request a: $uri');
     try {
-      final response = await http.get(uri).timeout(const Duration(seconds: 10));
+      final response = await http.get(uri).timeout(const Duration(seconds: 15));
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         return parse(json);
@@ -43,7 +56,7 @@ class ApiService {
       }
     } on SocketException catch (e) {
       print('Mobile: SocketException al conectar a $uri: $e');
-      throw Exception('No se pudo conectar al servidor ($uri). ¿Estás conectado a la VPN?');
+      throw Exception('No se pudo conectar al servidor ($uri). Revisa Firewall/VPN/Wi-Fi.');
     } catch (e) {
       print('Mobile: Error de red inesperado en $uri: $e');
       throw Exception('Error de red: $e');
@@ -59,7 +72,7 @@ class ApiService {
         uri,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'nombre': nombre}),
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         print('Mobile: Registro exitoso. Respuesta: ${response.body}');
