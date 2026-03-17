@@ -5,6 +5,17 @@ class ProgressService {
   static const String _starsKey = 'total_stars';
   static const String _ninoIdKey = 'nino_id';
   static const String _ninoNombreKey = 'nino_nombre';
+  static const String _onboardingKey = 'has_seen_rewards_onboarding';
+
+  Future<bool> hasSeenOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_onboardingKey) ?? false;
+  }
+
+  Future<void> setSeenOnboarding(bool seen) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_onboardingKey, seen);
+  }
 
   Future<bool> isRegistered() async {
     final prefs = await SharedPreferences.getInstance();
@@ -15,6 +26,7 @@ class ProgressService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_ninoIdKey, id);
     await prefs.setString(_ninoNombreKey, nombre);
+    await prefs.setBool(_onboardingKey, false); // Reset for new user
   }
 
   Future<void> logout() async {
@@ -23,6 +35,7 @@ class ProgressService {
     await prefs.remove(_ninoNombreKey);
     await prefs.remove(_levelKey);
     await prefs.remove(_starsKey);
+    await prefs.remove(_onboardingKey);
   }
 
   Future<int?> getNinoId() async {

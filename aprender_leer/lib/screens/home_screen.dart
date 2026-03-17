@@ -8,6 +8,7 @@ import 'challenges_screen.dart';
 import 'profile_screen.dart';
 import '../services/api_service.dart';
 import '../services/progress_service.dart';
+import '../widgets/reward_onboarding_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,41 +20,47 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
+  final _challengesKey = GlobalKey<ChallengesScreenState>();
+  final _profileKey = GlobalKey<ProfileScreenState>();
+
   List<Map<String, dynamic>> _nodes = [
-    // 1-5: Fundamentos
+    // 1-8: Fundamentos
     {'id': 'letras', 'title': 'Letras Mágicas', 'level': 1, 'unlocked': true},
     {'id': 'vocales', 'title': 'Las Vocales', 'level': 2, 'unlocked': false},
-    {'id': 'silabas_simples', 'title': 'Sílabas (M, P, T)', 'level': 3, 'unlocked': false},
-    {'id': 'silabas_simples', 'title': 'Sílabas (C, S, L)', 'level': 4, 'unlocked': false},
-    {'id': 'silabas_simples', 'title': 'Sílabas (N, D, R)', 'level': 5, 'unlocked': false},
+    {'id': 'silabas_mpt', 'title': 'Sílabas (M, P, T)', 'level': 3, 'unlocked': false},
+    {'id': 'silabas_csl', 'title': 'Sílabas (C, S, L)', 'level': 4, 'unlocked': false},
+    {'id': 'silabas_ndr', 'title': 'Sílabas (N, D, R)', 'level': 5, 'unlocked': false},
+    {'id': 'silabas_bgj', 'title': 'Sílabas (B, G, J)', 'level': 6, 'unlocked': false},
+    {'id': 'silabas_fch', 'title': 'Sílabas (F, CH)', 'level': 7, 'unlocked': false},
+    {'id': 'silabas_lln', 'title': 'Sílabas (LL, Ñ)', 'level': 8, 'unlocked': false},
     
-    // 6-10: Primeras Palabras
-    {'id': 'silabas_trabadas', 'title': 'Sílabas Trabadas', 'level': 6, 'unlocked': false},
-    {'id': 'palabras_trabadas', 'title': 'Palabras Trabadas', 'level': 8, 'unlocked': false},
-    {'id': 'palabras_casa_familia', 'title': 'Mi Familia', 'level': 10, 'unlocked': false},
+    // 9-11: Primeras Palabras
+    {'id': 'silabas_trabadas', 'title': 'Sílabas Trabadas', 'level': 9, 'unlocked': false},
+    {'id': 'palabras_trabadas', 'title': 'Palabras Trabadas', 'level': 10, 'unlocked': false},
+    {'id': 'palabras_casa_familia', 'title': 'Mi Familia', 'level': 11, 'unlocked': false},
     
-    // 11-20: Vocabulario Temático
+    // 12-15: Vocabulario Temático
     {'id': 'palabras_animales', 'title': 'Los Animales', 'level': 12, 'unlocked': false},
-    {'id': 'palabras_alimentos', 'title': 'Comida Rica', 'level': 15, 'unlocked': false},
-    {'id': 'palabras_escuela', 'title': 'En la Escuela', 'level': 18, 'unlocked': false},
-    {'id': 'palabras_ciudad', 'title': 'La Ciudad', 'level': 20, 'unlocked': false},
+    {'id': 'palabras_alimentos', 'title': 'Comida Rica', 'level': 13, 'unlocked': false},
+    {'id': 'palabras_escuela', 'title': 'En la Escuela', 'level': 14, 'unlocked': false},
+    {'id': 'palabras_ciudad', 'title': 'La Ciudad', 'level': 15, 'unlocked': false},
     
-    // 21-30: Acciones y Vida
-    {'id': 'palabras_naturaleza', 'title': 'Naturaleza', 'level': 22, 'unlocked': false},
-    {'id': 'palabras_acciones', 'title': '¡A Moverse!', 'level': 25, 'unlocked': false},
-    {'id': 'palabras_descripciones', 'title': 'Cómo es...', 'level': 28, 'unlocked': false},
-    {'id': 'frases_cortas_1', 'title': 'Primeras Frases', 'level': 30, 'unlocked': false},
+    // 16-19: Acciones y Vida
+    {'id': 'palabras_naturaleza', 'title': 'Naturaleza', 'level': 16, 'unlocked': false},
+    {'id': 'palabras_acciones', 'title': '¡A Moverse!', 'level': 17, 'unlocked': false},
+    {'id': 'palabras_descripciones', 'title': 'Cómo es...', 'level': 18, 'unlocked': false},
+    {'id': 'frases_cortas_1', 'title': 'Primeras Frases', 'level': 19, 'unlocked': false},
     
-    // 31-40: Construcción de Frases
-    {'id': 'frases_cortas_2', 'title': 'Frases de Animales', 'level': 33, 'unlocked': false},
-    {'id': 'frases_cortas_3', 'title': 'Frases del Día', 'level': 36, 'unlocked': false},
-    {'id': 'frases_preguntas', 'title': '¿Preguntas?', 'level': 38, 'unlocked': false},
-    {'id': 'frases_exclamaciones', 'title': '¡Exclamaciones!', 'level': 40, 'unlocked': false},
+    // 20-23: Construcción de Frases
+    {'id': 'frases_cortas_2', 'title': 'Frases de Animales', 'level': 20, 'unlocked': false},
+    {'id': 'frases_cortas_3', 'title': 'Frases del Día', 'level': 21, 'unlocked': false},
+    {'id': 'frases_preguntas', 'title': '¿Preguntas?', 'level': 22, 'unlocked': false},
+    {'id': 'frases_exclamaciones', 'title': '¡Exclamaciones!', 'level': 23, 'unlocked': false},
     
-    // 41-50: Lectura Avanzada
-    {'id': 'frases_conversacion', 'title': 'Conversaciones', 'level': 43, 'unlocked': false},
-    {'id': 'frases_emociones', 'title': 'Mis Emociones', 'level': 46, 'unlocked': false},
-    {'id': 'frases_descripciones', 'title': 'Cuentos Largos', 'level': 50, 'unlocked': false},
+    // 24-26: Lectura Avanzada
+    {'id': 'frases_conversacion', 'title': 'Conversaciones', 'level': 24, 'unlocked': false},
+    {'id': 'frases_emociones', 'title': 'Mis Emociones', 'level': 25, 'unlocked': false},
+    {'id': 'frases_descripciones', 'title': 'Cuentos Largos', 'level': 26, 'unlocked': false},
   ];
 
   late final List<Widget> _screens;
@@ -61,12 +68,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _screens = [
-      _PathView(nodes: _nodes),
-      const LibraryScreen(),
-      const ChallengesScreen(),
-      const ProfileScreen(),
-    ];
+    _checkOnboarding();
+  }
+
+  Future<void> _checkOnboarding() async {
+    final progress = ProgressService();
+    final hasSeen = await progress.hasSeenOnboarding();
+    if (!hasSeen && mounted) {
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => RewardOnboardingDialog(),
+      );
+      await progress.setSeenOnboarding(true);
+    }
   }
 
   @override
@@ -75,7 +90,12 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.white,
       body: IndexedStack(
         index: _selectedIndex,
-        children: _screens,
+        children: [
+          _PathView(nodes: _nodes),
+          const LibraryScreen(),
+          ChallengesScreen(key: _challengesKey),
+          ProfileScreen(key: _profileKey),
+        ],
       ),
       bottomNavigationBar: _buildBottomNav(),
     );
@@ -93,7 +113,14 @@ class _HomeScreenState extends State<HomeScreen> {
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+          if (index == 2) {
+            _challengesKey.currentState?.loadStats();
+          } else if (index == 3) {
+            _profileKey.currentState?.loadStats();
+          }
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Aprender'),
           BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Biblioteca'),
@@ -143,20 +170,30 @@ class _PathViewState extends State<_PathView> {
             print('PathView: Stats cargadas: Nivel $_level, Gemas $_gems, Streak $_streak');
             
             // Update unlock status and stars in nodes
-            for (var node in widget.nodes) {
-              final nodeLevel = node['level'] as int;
+            for (var i = 0; i < widget.nodes.length; i++) {
+              final node = widget.nodes[i];
               final categoryId = node['id'] as String;
-              
-              node['unlocked'] = (nodeLevel == 1) || (_level >= nodeLevel);
               node['stars'] = _categoryProgress[categoryId] ?? 0;
+              
+              if (i == 0) {
+                node['unlocked'] = true; // First node always unlocked
+              } else {
+                final prevNode = widget.nodes[i - 1];
+                final prevStars = (prevNode['stars'] as int?) ?? 0;
+                final prevUnlocked = (prevNode['unlocked'] as bool?) ?? false;
+                
+                // Unlock if previous node is unlocked AND has at least 4 stars
+                node['unlocked'] = prevUnlocked && (prevStars >= 4);
+              }
             }
           });
         }
       } else {
         if (mounted) {
           setState(() {
-            for (var node in widget.nodes) {
-              if (node['level'] == 1) node['unlocked'] = true;
+            for (var i = 0; i < widget.nodes.length; i++) {
+              final node = widget.nodes[i];
+              node['unlocked'] = (i == 0);
               node['stars'] = 0;
             }
           });
@@ -170,8 +207,8 @@ class _PathViewState extends State<_PathView> {
   void _navigate(BuildContext context, Map<String, dynamic> node) {
     if (!(node['unlocked'] ?? false)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('¡Sigue practicando! Se desbloquea en el Nivel ${node['level']}'),
+        const SnackBar(
+          content: Text('¡Sigue practicando! Necesitas al menos 4 estrellas en el nivel anterior para desbloquear este.'),
           backgroundColor: AppTheme.accentColor,
         ),
       );
@@ -213,10 +250,15 @@ class _PathViewState extends State<_PathView> {
       ),
       body: RefreshIndicator(
         onRefresh: _loadStats,
-        child: ListView.builder(
-          padding: const EdgeInsets.symmetric(vertical: 40),
-          itemCount: widget.nodes.length,
-          itemBuilder: (context, index) => _buildPathNode(context, index),
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              itemCount: widget.nodes.length,
+              itemBuilder: (context, index) => _buildPathNode(context, index),
+            ),
+          ),
         ),
       ),
     );

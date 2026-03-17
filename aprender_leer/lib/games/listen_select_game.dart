@@ -186,115 +186,109 @@ class _ListenSelectGameState extends State<ListenSelectGame> with SingleTickerPr
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              '¿Qué letra / sílaba escuchas?',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            // Play audio button
-            Center(
-              child: AnimatedBuilder(
-                animation: _shakeAnimation,
-                builder: (context, child) => Transform.translate(
-                  offset: Offset(_shakeAnimation.value * (_answered && _selectedAnswer != q.correctAnswer ? 1 : 0), 0),
-                  child: child,
-                ),
-                child: InkWell(
-                  onTap: _playCurrentAudio,
-                  borderRadius: BorderRadius.circular(60),
-                  child: Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: AppTheme.secondaryColor,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.secondaryColor.withValues(alpha: 0.4),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 600),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                '¿Qué letra / sílaba escuchas?',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              // Play audio button
+              Center(
+                child: AnimatedBuilder(
+                  animation: _shakeAnimation,
+                  builder: (context, child) => Transform.translate(
+                    offset: Offset(_shakeAnimation.value * (_answered && _selectedAnswer != q.correctAnswer ? 1 : 0), 0),
+                    child: child,
+                  ),
+                  child: InkWell(
+                    onTap: _playCurrentAudio,
+                    borderRadius: BorderRadius.circular(60),
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: AppTheme.secondaryColor,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.secondaryColor.withValues(alpha: 0.4),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.volume_up_rounded, color: Colors.white, size: 56),
                     ),
-                    child: const Icon(Icons.volume_up_rounded, color: Colors.white, size: 56),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            const Center(
-              child: Text('Toca para escuchar de nuevo', style: TextStyle(color: Colors.grey, fontSize: 13)),
-            ),
-            const SizedBox(height: 32),
-            Expanded(
-              child: Scrollbar(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 14,
-                  crossAxisSpacing: 14,
-                  childAspectRatio: 2.0,
-                  padding: const EdgeInsets.only(bottom: 20),
-                  children: q.options.map((option) {
-                    final isCorrect = _answered && option == q.correctAnswer;
-                    final isWrong = _answered && option == _selectedAnswer && option != q.correctAnswer;
-                    return GestureDetector(
-                      onTap: () => _selectAnswer(option),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        decoration: BoxDecoration(
-                          color: _optionColor(option),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: _optionBorderColor(option), width: 2.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: _answered
-                                  ? (isCorrect ? AppTheme.primaryColor : isWrong ? AppTheme.accentColor : Colors.transparent)
-                                  : const Color(0xFF58A700),
-                              offset: const Offset(0, 4),
-                              blurRadius: _answered ? 0 : 2,
-                            ),
-                          ],
-                        ),
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (isCorrect) Padding(padding: const EdgeInsets.only(right: 4), child: Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 18)),
-                            if (isWrong) Padding(padding: const EdgeInsets.only(right: 4), child: Icon(Icons.cancel, color: AppTheme.accentColor, size: 18)),
-                            Flexible(
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  option.toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: isCorrect
-                                        ? AppTheme.primaryColor
-                                        : isWrong
-                                            ? AppTheme.accentColor
-                                            : AppTheme.textColor,
+              const SizedBox(height: 8),
+              const Center(
+                child: Text('Toca para escuchar de nuevo', style: TextStyle(color: Colors.grey, fontSize: 13)),
+              ),
+              const SizedBox(height: 32),
+              Expanded(
+                child: Scrollbar(
+                  child: GridView.count(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 14,
+                    crossAxisSpacing: 14,
+                    childAspectRatio: 2.0,
+                    padding: const EdgeInsets.only(bottom: 20),
+                    children: q.options.map((option) {
+                      final isCorrect = _answered && option == q.correctAnswer;
+                      final isWrong = _answered && option == _selectedAnswer && option != q.correctAnswer;
+                      return GestureDetector(
+                        onTap: () => _selectAnswer(option),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          decoration: BoxDecoration(
+                            color: _optionColor(option),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: _optionBorderColor(option), width: 2.5),
+                          ),
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (isCorrect) Padding(padding: const EdgeInsets.only(right: 4), child: Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 18)),
+                              if (isWrong) Padding(padding: const EdgeInsets.only(right: 4), child: Icon(Icons.cancel, color: AppTheme.accentColor, size: 18)),
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    option.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: isCorrect
+                                          ? AppTheme.primaryColor
+                                          : isWrong
+                                              ? AppTheme.accentColor
+                                              : AppTheme.textColor,
+                                    ),
+                                    textAlign: TextAlign.center,
                                   ),
-                                  textAlign: TextAlign.center,
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

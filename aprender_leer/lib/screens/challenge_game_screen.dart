@@ -397,18 +397,37 @@ class _ChallengeGameScreenState extends State<ChallengeGameScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
-              _isCorrect ? '¡FANTÁSTICO!' : '¡CASI! ERA LA "$_hiddenLetter"',
+              _isCorrect ? '¡FANTÁSTICO!' : '¡CASI! ERA LA "${widget.gameType == 'completar' ? _hiddenLetter : _word}"',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+              style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
             ),
           ),
-          const SizedBox(height: 30),
+          if (_isCorrect) ...[
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                5,
+                (i) => ElasticIn(
+                  delay: Duration(milliseconds: i * 150),
+                  child: const Icon(Icons.star_rounded, color: AppTheme.warningColor, size: 48),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              '¡HAS GANADO 5 ESTRELLAS!',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1.1),
+            ),
+          ],
+          const SizedBox(height: 40),
           ElevatedButton(
             onPressed: _nextChallenge,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              elevation: 5,
             ),
             child: Text(
               'SIGUIENTE',

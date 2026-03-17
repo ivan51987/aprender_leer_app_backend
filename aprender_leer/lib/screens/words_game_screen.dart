@@ -9,25 +9,28 @@ class WordsGameScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Forma Palabras')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            const Expanded(
-              child: Center(
-                child: Text('¿Listo para el desafío?', style: TextStyle(fontSize: 24)),
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 500),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              const Expanded(
+                child: Center(
+                  child: Text('¿Listo para el desafío?', style: TextStyle(fontSize: 24)),
+                ),
               ),
-            ),
-            GameButton(
-              label: 'EMPEZAR JUEGO',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const WordScrambleGame()),
-                );
-              },
-            ),
-          ],
+              GameButton(
+                label: 'EMPEZAR JUEGO',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const WordScrambleGame()),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

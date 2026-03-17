@@ -19,7 +19,7 @@ class ApiService {
     // 1. VPN: '82.39.109.74'
     // 2. Local PC: '192.168.0.2'
     // 3. Emulador viendo a PC: '10.0.2.2'
-    const String targetIp = '82.39.109.74'; 
+    const String targetIp = '192.168.0.2'; 
     const String port = '4001';
     
     return 'http://$targetIp:$port';

@@ -123,106 +123,105 @@ class _AudioMatchGameState extends State<AudioMatchGame> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Toca una tarjeta para escuchar su sonido',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: AppTheme.textColor),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 0.7, // More height
-                ),
-                itemCount: _displayItems.length,
-                itemBuilder: (context, index) {
-                  final item = _displayItems[index];
-                  final isMatched = _matched.contains(item.id);
-                  final isSelected = _selectedId == item.id;
-
-                  return FadeInUp(
-                    delay: Duration(milliseconds: index * 40),
-                    child: GestureDetector(
-                      onTap: () => _onTapCard(item),
-                      onDoubleTap: () => _confirmMatch(item),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: isMatched
-                              ? AppTheme.primaryColor.withValues(alpha: 0.15)
-                              : isSelected
-                                  ? AppTheme.secondaryColor.withValues(alpha: 0.15)
-                                  : Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isMatched
-                                ? AppTheme.primaryColor
-                                : isSelected
-                                    ? AppTheme.secondaryColor
-                                    : AppTheme.lightGray,
-                            width: 2.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: isMatched
-                                  ? AppTheme.primaryColor.withValues(alpha: 0.3)
-                                  : Colors.black.withValues(alpha: 0.06),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (isMatched)
-                              const Icon(Icons.check_circle_rounded, color: AppTheme.primaryColor, size: 24)
-                            else
-                              Icon(
-                                Icons.volume_up_rounded,
-                                color: isSelected ? AppTheme.secondaryColor : Colors.grey.shade400,
-                                size: 24,
-                              ),
-                            const SizedBox(height: 4),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                item.text.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 800),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Toca una tarjeta para escuchar su sonido',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: AppTheme.textColor),
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final cols = constraints.maxWidth > 600 ? 5 : 4;
+                    return GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: cols,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
+                        childAspectRatio: 0.8,
+                      ),
+                      itemCount: _displayItems.length,
+                      itemBuilder: (context, index) {
+                        final item = _displayItems[index];
+                        final isMatched = _matched.contains(item.id);
+                        final isSelected = _selectedId == item.id;
+      
+                        return FadeInUp(
+                          delay: Duration(milliseconds: index * 40),
+                          child: GestureDetector(
+                            onTap: () => _onTapCard(item),
+                            onDoubleTap: () => _confirmMatch(item),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isMatched
+                                    ? AppTheme.primaryColor.withOpacity(0.15)
+                                    : isSelected
+                                        ? AppTheme.secondaryColor.withOpacity(0.15)
+                                        : Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
                                   color: isMatched
                                       ? AppTheme.primaryColor
                                       : isSelected
                                           ? AppTheme.secondaryColor
-                                          : AppTheme.textColor,
+                                          : AppTheme.lightGray,
+                                  width: 2.5,
                                 ),
                               ),
-                            ),
-                            if (isSelected && !isMatched)
-                              const Text(
-                                '2×',
-                                style: TextStyle(fontSize: 8, color: Colors.grey),
-                                textAlign: TextAlign.center,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (isMatched)
+                                    const Icon(Icons.check_circle_rounded, color: AppTheme.primaryColor, size: 24)
+                                  else
+                                    Icon(
+                                      Icons.volume_up_rounded,
+                                      color: isSelected ? AppTheme.secondaryColor : Colors.grey.shade400,
+                                      size: 24,
+                                    ),
+                                  const SizedBox(height: 4),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      item.text.toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: isMatched
+                                            ? AppTheme.primaryColor
+                                            : isSelected
+                                                ? AppTheme.secondaryColor
+                                                : AppTheme.textColor,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isSelected && !isMatched)
+                                    const Text(
+                                      '2×',
+                                      style: TextStyle(fontSize: 8, color: Colors.grey),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                ],
                               ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

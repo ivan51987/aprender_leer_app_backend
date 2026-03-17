@@ -316,33 +316,39 @@ app.get("/api/ninos/:id/stats", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Get total score and stars for level and gems
-    const scoreResult = await pool.query(
-      "SELECT SUM(puntuacion) as total_score, SUM(estrellas) as total_stars FROM puntuaciones WHERE nino_id = $1",
+    // 1. Stars from "Aprender" (juego_tipo = 'lesson')
+    const aprenderResult = await pool.query(
+      "SELECT SUM(estrellas) as stars FROM puntuaciones WHERE nino_id = $1 AND juego_tipo = 'lesson'",
       [id],
     );
+    const starsAprender = parseInt(aprenderResult.rows[0].stars || 0);
 
-    const totalPoints = parseInt(scoreResult.rows[0].total_score || 0);
-    const totalStars = parseInt(scoreResult.rows[0].total_stars || 0);
+    // 2. Stars from "Desafíos" (juego_tipo IN ('completar', 'sopa', ...))
+    const desafiosResult = await pool.query(
+      "SELECT SUM(estrellas) as stars FROM puntuaciones WHERE nino_id = $1 AND juego_tipo != 'lesson'",
+      [id],
+    );
+    const starsDesafios = parseInt(desafiosResult.rows[0].stars || 0);
+
+    // 3. Stars from "Biblioteca" (each learned item = 1 star)
+    const bibliotecaResult = await pool.query(
+      "SELECT SUM(stars) as stars FROM aprendidos WHERE nino_id = $1",
+      [id],
+    );
+    const starsBiblioteca = parseInt(bibliotecaResult.rows[0].stars || 0);
+
+    const totalStars = starsAprender + starsDesafios + starsBiblioteca;
 
     // Calculate level (10 stars per level)
     const level = Math.floor(totalStars / 10) + 1;
 
-    // Calculate gems: each star gives 5 gems + bonus from rewards
-    const learnedResult = await pool.query(
-      "SELECT COUNT(*) as learned_count FROM aprendidos WHERE nino_id = $1",
-      [id],
-    );
+    // Calculate gems: 10 stars = 5 gems + bonus from rewards
     const rewardResult = await pool.query(
       "SELECT SUM(cantidad) as total_bonus FROM recompensas WHERE nino_id = $1",
       [id],
     );
-
-    const learnedCount = parseInt(learnedResult.rows[0].learned_count || 0);
     const totalBonus = parseInt(rewardResult.rows[0].total_bonus || 0);
-
-    // Gem formula: (Stars * 5) + (Learned Items * 5) + Bonus rewards
-    const gems = totalStars * 5 + learnedCount * 5 + totalBonus;
+    const gems = Math.floor(totalStars / 10) * 5 + totalBonus;
 
     // Calculate streak
     const streakResult = await pool.query(
@@ -389,7 +395,10 @@ app.get("/api/ninos/:id/stats", async (req, res) => {
       level,
       gems,
       streak,
-      total_points: totalPoints,
+      totalStars,
+      starsAprender,
+      starsBiblioteca,
+      starsDesafios,
       category_progress,
     });
   } catch (error) {
@@ -482,10 +491,9 @@ app.get("/api/leaderboard", async (req, res) => {
   try {
     const query = `
       SELECT n.id, n.nombre, 
-             COALESCE(SUM(p.estrellas), 0) as total_stars
+             COALESCE((SELECT SUM(estrellas) FROM puntuaciones WHERE nino_id = n.id), 0) +
+             COALESCE((SELECT SUM(stars) FROM aprendidos WHERE nino_id = n.id), 0) as total_stars
       FROM ninos n
-      LEFT JOIN puntuaciones p ON n.id = p.nino_id
-      GROUP BY n.id, n.nombre
       ORDER BY total_stars DESC
       LIMIT 5
     `;
@@ -506,9 +514,10 @@ app.get("/api/ninos/:id/rank", async (req, res) => {
   try {
     const query = `
       WITH totals AS (
-        SELECT nino_id, SUM(estrellas) as total_stars
-        FROM puntuaciones
-        GROUP BY nino_id
+        SELECT n.id as nino_id,
+               COALESCE((SELECT SUM(estrellas) FROM puntuaciones WHERE nino_id = n.id), 0) +
+               COALESCE((SELECT SUM(stars) FROM aprendidos WHERE nino_id = n.id), 0) as total_stars
+        FROM ninos n
       ),
       ranked AS (
         SELECT nino_id, RANK() OVER (ORDER BY total_stars DESC) as rank

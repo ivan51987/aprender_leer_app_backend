@@ -41,6 +41,7 @@ async function initDB() {
       nino_id INTEGER REFERENCES ninos(id),
       item_texto TEXT NOT NULL,
       categoria VARCHAR(255) NOT NULL,
+      stars INTEGER NOT NULL DEFAULT 1,
       fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(nino_id, item_texto)
     );

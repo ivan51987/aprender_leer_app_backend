@@ -53,16 +53,19 @@ class _SyllablesGameScreenState extends State<SyllablesGameScreen> {
                   ),
                 )
               : Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Wrap(
-                      spacing: 14,
-                      runSpacing: 14,
-                      alignment: WrapAlignment.center,
-                      children: _items.map((item) => SyllableButton(
-                        syllable: item.text.toUpperCase(),
-                        onTap: () => AudioService().playUrl(item.audioUrl),
-                      )).toList(),
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 800),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Wrap(
+                        spacing: 14,
+                        runSpacing: 14,
+                        alignment: WrapAlignment.center,
+                        children: _items.map((item) => SyllableButton(
+                          syllable: item.text.toUpperCase(),
+                          onTap: () => AudioService().playUrl(item.audioUrl),
+                        )).toList(),
+                      ),
                     ),
                   ),
                 ),

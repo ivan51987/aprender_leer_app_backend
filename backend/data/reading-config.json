@@ -151,90 +151,61 @@
       ]
     },
     {
-      "id": "silabas_simples",
-      "label": "Sílabas simples",
+      "id": "silabas_mpt",
+      "label": "Sílabas (M, P, T)",
       "fallbackTemplate": "La sílaba {text}",
       "items": [
-        "ma",
-        "me",
-        "mi",
-        "mo",
-        "mu",
-        "pa",
-        "pe",
-        "pi",
-        "po",
-        "pu",
-        "ta",
-        "te",
-        "ti",
-        "to",
-        "tu",
-        "ca",
-        "ce",
-        "ci",
-        "co",
-        "cu",
-        "sa",
-        "se",
-        "si",
-        "so",
-        "su",
-        "la",
-        "le",
-        "li",
-        "lo",
-        "lu",
-        "na",
-        "ne",
-        "ni",
-        "no",
-        "nu",
-        "da",
-        "de",
-        "di",
-        "do",
-        "du",
-        "ra",
-        "re",
-        "ri",
-        "ro",
-        "ru",
-        "ba",
-        "be",
-        "bi",
-        "bo",
-        "bu",
-        "ga",
-        "ge",
-        "gi",
-        "go",
-        "gu",
-        "ja",
-        "je",
-        "ji",
-        "jo",
-        "ju",
-        "fa",
-        "fe",
-        "fi",
-        "fo",
-        "fu",
-        "cha",
-        "che",
-        "chi",
-        "cho",
-        "chu",
-        "lla",
-        "lle",
-        "lli",
-        "llo",
-        "llu",
-        "ña",
-        "ñe",
-        "ñi",
-        "ño",
-        "ñu"
+        "ma", "me", "mi", "mo", "mu",
+        "pa", "pe", "pi", "po", "pu",
+        "ta", "te", "ti", "to", "tu"
+      ]
+    },
+    {
+      "id": "silabas_csl",
+      "label": "Sílabas (C, S, L)",
+      "fallbackTemplate": "La sílaba {text}",
+      "items": [
+        "ca", "ce", "ci", "co", "cu",
+        "sa", "se", "si", "so", "su",
+        "la", "le", "li", "lo", "lu"
+      ]
+    },
+    {
+      "id": "silabas_ndr",
+      "label": "Sílabas (N, D, R)",
+      "fallbackTemplate": "La sílaba {text}",
+      "items": [
+        "na", "ne", "ni", "no", "nu",
+        "da", "de", "di", "do", "du",
+        "ra", "re", "ri", "ro", "ru"
+      ]
+    },
+    {
+      "id": "silabas_bgj",
+      "label": "Sílabas (B, G, J)",
+      "fallbackTemplate": "La sílaba {text}",
+      "items": [
+        "ba", "be", "bi", "bo", "bu",
+        "ga", "ge", "gi", "go", "gu",
+        "ja", "je", "ji", "jo", "ju"
+      ]
+    },
+    {
+      "id": "silabas_fch",
+      "label": "Sílabas (F, CH)",
+      "fallbackTemplate": "La sílaba {text}",
+      "items": [
+        "fa", "fe", "fi", "fo", "fu",
+        "cha", "che", "chi", "cho", "chu"
+      ]
+    },
+    {
+      "id": "silabas_lln",
+      "label": "Sílabas (LL, Ñ)",
+      "fallbackTemplate": "La sílaba {text}",
+      "items": [
+        "lla", "lle", "lli", "llo", "llu",
+        "ña", "ñe", "ñi", "ño", "ñu"
       ]
     },
     {

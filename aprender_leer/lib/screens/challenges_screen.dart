@@ -9,27 +9,29 @@ class ChallengesScreen extends StatefulWidget {
   const ChallengesScreen({super.key});
 
   @override
-  State<ChallengesScreen> createState() => _ChallengesScreenState();
+  State<ChallengesScreen> createState() => ChallengesScreenState();
 }
 
-class _ChallengesScreenState extends State<ChallengesScreen> {
-  int _stars = 0;
+class ChallengesScreenState extends State<ChallengesScreen> {
+  int _gems = 0;
+  int _totalStars = 0;
   int _level = 1;
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadStats();
+    loadStats();
   }
 
-  Future<void> _loadStats() async {
+  Future<void> loadStats() async {
     try {
       final pid = await ProgressService().getNinoId();
       if (pid != null) {
         final stats = await ApiService().getNinoStats(pid);
         setState(() {
-          _stars = stats['gems'] ?? 0;
+          _gems = stats['gems'] ?? 0;
+          _totalStars = stats['totalStars'] ?? 0;
           _level = stats['level'] ?? 1;
         });
       }
@@ -51,66 +53,71 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
         backgroundColor: Colors.white,
       ),
       body: RefreshIndicator(
-        onRefresh: _loadStats,
+        onRefresh: loadStats,
         child: _loading 
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(24),
-              children: [
-                // Stats Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+          : Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: ListView(
+                  padding: const EdgeInsets.all(24),
                   children: [
-                    _buildMiniStat(Icons.diamond, '$_stars', Colors.blue),
-                    _buildMiniStat(Icons.trending_up, 'NVL $_level', Colors.orange),
+                    // Stats Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildMiniStat(Icons.diamond, '$_gems', Colors.blue),
+                        _buildMiniStat(Icons.trending_up, 'NVL $_level', Colors.orange),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    Text(
+                      'DESAFÍOS INTERACTIVOS',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textColor, letterSpacing: 1.2),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    _buildChallengeButton(
+                      'COMPLETAR PALABRAS',
+                      'Encuentra la letra que falta',
+                      Icons.extension,
+                      Colors.purple,
+                      () => _startChallenge('completar'),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildChallengeButton(
+                      'SOPA DE LETRAS',
+                      'Busca palabras ocultas',
+                      Icons.grid_on,
+                      Colors.teal,
+                      () => _startChallenge('sopa'),
+                    ),
+                    
+                    const SizedBox(height: 40),
+                    Text(
+                      'MISIONES DIARIAS',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textColor, letterSpacing: 1.2),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildMissionCard(
+                      'Camino al Éxito',
+                      'Llega al Nivel 50',
+                      (_level / 50).clamp(0.0, 1.0),
+                      Icons.trending_up,
+                      AppTheme.primaryColor,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildMissionCard(
+                      'Coleccionista de Estrellas',
+                      'Gana 250 estrellas en total',
+                      (_totalStars / 250).clamp(0.0, 1.0),
+                      Icons.star,
+                      AppTheme.warningColor,
+                    ),
                   ],
                 ),
-                const SizedBox(height: 32),
-                
-                Text(
-                  'DESAFÍOS INTERACTIVOS',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textColor, letterSpacing: 1.2),
-                ),
-                const SizedBox(height: 16),
-                
-                _buildChallengeButton(
-                  'COMPLETAR PALABRAS',
-                  'Encuentra la letra que falta',
-                  Icons.extension,
-                  Colors.purple,
-                  () => _startChallenge('completar'),
-                ),
-                const SizedBox(height: 12),
-                _buildChallengeButton(
-                  'SOPA DE LETRAS',
-                  'Busca palabras ocultas',
-                  Icons.grid_on,
-                  Colors.teal,
-                  () => _startChallenge('sopa'),
-                ),
-                
-                const SizedBox(height: 40),
-                Text(
-                  'MISIONES DIARIAS',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textColor, letterSpacing: 1.2),
-                ),
-                const SizedBox(height: 16),
-                _buildMissionCard(
-                  'Camino al Éxito',
-                  'Llega al Nivel 50',
-                  (_level / 50).clamp(0.0, 1.0),
-                  Icons.trending_up,
-                  AppTheme.primaryColor,
-                ),
-                const SizedBox(height: 16),
-                _buildMissionCard(
-                  'Coleccionista de Estrellas',
-                  'Gana 250 estrellas en total',
-                  (_stars / 250).clamp(0.0, 1.0),
-                  Icons.star,
-                  AppTheme.warningColor,
-                ),
-              ],
+              ),
             ),
       ),
     );
@@ -176,12 +183,12 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const ChallengeGameScreen(gameType: 'completar')),
-      ).then((_) => _loadStats());
+      ).then((_) => loadStats());
     } else if (type == 'sopa') {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const ChallengeGameScreen(gameType: 'sopa')),
-      ).then((_) => _loadStats());
+      ).then((_) => loadStats());
     }
   }
 

@@ -41,7 +41,8 @@ class _WordScrambleGameState extends State<WordScrambleGame> {
         ),
       ),
       body: Center(
-        child: Padding(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 600),
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

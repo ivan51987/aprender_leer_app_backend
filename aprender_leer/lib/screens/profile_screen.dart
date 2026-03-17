@@ -8,14 +8,18 @@ class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  State<ProfileScreen> createState() => ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class ProfileScreenState extends State<ProfileScreen> {
   bool _loading = true;
   int _level = 1;
   int _streak = 0;
   int _gems = 0;
+  int _totalStars = 0;
+  int _starsAprender = 0;
+  int _starsBiblioteca = 0;
+  int _starsDesafios = 0;
   int _rank = 0;
   List<dynamic> _leaderboard = [];
   String _nombre = 'Amiguito';
@@ -23,10 +27,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _loadStats();
+    loadStats();
   }
 
-  Future<void> _loadStats() async {
+  Future<void> loadStats() async {
     setState(() => _loading = true);
     try {
       final progress = ProgressService();
@@ -47,6 +51,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _level = stats['level'] ?? 1;
             _streak = stats['streak'] ?? 0;
             _gems = stats['gems'] ?? 0;
+            _totalStars = stats['totalStars'] ?? 0;
+            _starsAprender = stats['starsAprender'] ?? 0;
+            _starsBiblioteca = stats['starsBiblioteca'] ?? 0;
+            _starsDesafios = stats['starsDesafios'] ?? 0;
             _rank = (results[1] as int?) ?? 0;
             _leaderboard = results[2] as List<dynamic>;
             _loading = false;
@@ -77,80 +85,93 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('PERFIL', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
         centerTitle: true,
         actions: [
-          IconButton(onPressed: _loadStats, icon: const Icon(Icons.refresh)),
+          IconButton(onPressed: loadStats, icon: const Icon(Icons.refresh)),
         ],
       ),
       body: _loading 
         ? const Center(child: CircularProgressIndicator())
-        : ListView(
-            padding: const EdgeInsets.all(24.0),
-            children: [
-              Center(
-                child: Column(
-                  children: [
-                    const CircleAvatar(
-                      radius: 50,
-                      backgroundColor: AppTheme.lightGray,
-                      child: Icon(Icons.person, size: 60, color: AppTheme.primaryColor),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      '¡Hola, $_nombre!', 
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    if (_rank > 0)
-                      Container(
-                        margin: const EdgeInsets.only(top: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppTheme.secondaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(20),
+        : Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: ListView(
+                padding: const EdgeInsets.all(24.0),
+                children: [
+                  Center(
+                    child: Column(
+                      children: [
+                        const CircleAvatar(
+                          radius: 50,
+                          backgroundColor: AppTheme.lightGray,
+                          child: Icon(Icons.person, size: 60, color: AppTheme.primaryColor),
                         ),
-                        child: Text(
-                          'Puesto #$_rank Global',
-                          style: TextStyle(color: AppTheme.secondaryColor, fontWeight: FontWeight.bold),
+                        const SizedBox(height: 16),
+                        Text(
+                          '¡Hola, $_nombre!', 
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                         ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
-              
-              const Text('MIS ESTADÍSTICAS', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
-              const SizedBox(height: 16),
-              _buildProfileItem(Icons.star, 'Nivel $_level', Colors.amber),
-              _buildProfileItem(Icons.local_fire_department, 'Racha de $_streak días', Colors.orange),
-              _buildProfileItem(Icons.diamond, '$_gems Gemas', Colors.blue),
-              
-              const SizedBox(height: 40),
-              const Text('TABLA DE POSICIONES', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
-              const SizedBox(height: 16),
-              _buildLeaderboard(),
-
-              const SizedBox(height: 40),
-              Center(
-                child: Text(
-                  'Creado por: Ing. Ivan Flores Flores',
-                  style: TextStyle(
-                    color: Colors.grey.shade400,
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic,
+                        if (_rank > 0)
+                          Container(
+                            margin: const EdgeInsets.only(top: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppTheme.secondaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'Puesto #$_rank Global',
+                              style: TextStyle(color: AppTheme.secondaryColor, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 32),
+                  
+                  Row(
+                    children: [
+                       Expanded(child: _buildStatCard('Nivel', _level.toString(), Icons.trending_up, Colors.blue)),
+                       const SizedBox(width: 12),
+                       Expanded(child: _buildStatCard('Gemas', _gems.toString(), Icons.diamond, Colors.purple)),
+                       const SizedBox(width: 12),
+                       Expanded(child: _buildStatCard('Racha', '$_streak d', Icons.local_fire_department, Colors.orange)),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+    
+                  // Star Breakdown Card
+                  _buildStarBreakdown(),
+    
+                  const SizedBox(height: 32),
+                  const Text('TABLA DE POSICIONES', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+                  const SizedBox(height: 16),
+                  _buildLeaderboard(),
+    
+                  const SizedBox(height: 48),
+                  Center(
+                    child: Text(
+                      'Creado por: Ing. Ivan Flores Flores',
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () => _logout(context),
+                    icon: const Icon(Icons.logout),
+                    label: const Text('CERRAR SESIÓN'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.accentColor,
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
               ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () => _logout(context),
-                icon: const Icon(Icons.logout),
-                label: const Text('CERRAR SESIÓN'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.accentColor,
-                  minimumSize: const Size(double.infinity, 50),
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
+            ),
           ),
     );
   }
@@ -222,22 +243,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileItem(IconData icon, String text, Color color) {
+  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.lightGray),
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.2)),
       ),
-      child: Row(
+      child: Column(
         children: [
           Icon(icon, color: color, size: 28),
-          const SizedBox(width: 16),
-          Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
         ],
       ),
+    );
+  }
+
+  Widget _buildStarBreakdown() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10)),
+        ],
+        border: Border.all(color: AppTheme.lightGray),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('ESTRELLAS GANADAS', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(color: AppTheme.warningColor.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                child: Text('$_totalStars TOTAL', style: const TextStyle(color: AppTheme.warningColor, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _buildStarRow('Aprender', _starsAprender, AppTheme.primaryColor),
+          const Divider(height: 24),
+          _buildStarRow('Biblioteca', _starsBiblioteca, Colors.green),
+          const Divider(height: 24),
+          _buildStarRow('Desafíos', _starsDesafios, Colors.orange),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStarRow(String label, int count, Color color) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+          child: Icon(Icons.star_rounded, color: color, size: 24),
+        ),
+        const SizedBox(width: 16),
+        Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        const Spacer(),
+        Text('$count', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+      ],
     );
   }
 }

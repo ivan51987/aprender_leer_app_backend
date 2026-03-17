@@ -87,21 +87,31 @@ class _LettersGameScreenState extends State<LettersGameScreen> {
                     ],
                   ),
                 )
-              : GridView.builder(
-                  padding: const EdgeInsets.all(24),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    crossAxisSpacing: 14,
-                    mainAxisSpacing: 14,
+              : Center(
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 800),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final cols = constraints.maxWidth > 600 ? 6 : 4;
+                        return GridView.builder(
+                          padding: const EdgeInsets.all(24),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: cols,
+                            crossAxisSpacing: 14,
+                            mainAxisSpacing: 14,
+                          ),
+                          itemCount: _items.length,
+                          itemBuilder: (context, index) {
+                            final item = _items[index];
+                            return LetterCard(
+                              letter: item.text.toUpperCase(),
+                              onTap: () => AudioService().playUrl(item.audioUrl),
+                            );
+                          },
+                        );
+                      }
+                    ),
                   ),
-                  itemCount: _items.length,
-                  itemBuilder: (context, index) {
-                    final item = _items[index];
-                    return LetterCard(
-                      letter: item.text.toUpperCase(),
-                      onTap: () => AudioService().playUrl(item.audioUrl),
-                    );
-                  },
                 ),
     );
   }

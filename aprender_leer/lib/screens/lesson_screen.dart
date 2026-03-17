@@ -174,70 +174,59 @@ class _LessonScreenState extends State<LessonScreen> {
         ),
         title: Text(widget.title),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          children: [
-            const Spacer(),
-            FadeInDown(
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.4),
-                      blurRadius: 24,
-                      offset: const Offset(0, 10),
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 600),
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            children: [
+              const Spacer(),
+              FadeInDown(
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
                     ),
-                  ],
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.menu_book_rounded, size: 60, color: Colors.white),
                 ),
-                child: const Icon(Icons.menu_book_rounded, size: 60, color: Colors.white),
               ),
-            ),
-            const SizedBox(height: 28),
-            FadeInUp(
-              delay: const Duration(milliseconds: 150),
-              child: Text(
-                widget.title,
-                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
+              const SizedBox(height: 28),
+              FadeInUp(
+                child: Text(
+                  widget.title,
+                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            FadeInUp(
-              delay: const Duration(milliseconds: 250),
-              child: Text(
-                '${_items.length} elementos · 2 ejercicios',
-                style: const TextStyle(color: Colors.grey, fontSize: 15),
+              const SizedBox(height: 12),
+              FadeInUp(
+                child: Text(
+                  '${_items.length} elementos · 2 ejercicios',
+                  style: const TextStyle(color: Colors.grey, fontSize: 15),
+                ),
               ),
-            ),
-            const SizedBox(height: 32),
-            FadeInUp(
-              delay: const Duration(milliseconds: 350),
-              child: _buildExercisePill(Icons.headphones_rounded, 'Escucha y Elige', AppTheme.secondaryColor),
-            ),
-            const SizedBox(height: 12),
-            FadeInUp(
-              delay: const Duration(milliseconds: 450),
-              child: _buildExercisePill(Icons.grid_view_rounded, 'Une el Audio', AppTheme.warningColor),
-            ),
-            const Spacer(),
-            FadeInUp(
-              delay: const Duration(milliseconds: 550),
-              child: ElevatedButton(
-                onPressed: () => setState(() => _phase = 1),
-                child: const Text('¡EMPEZAR LECCIÓN!'),
+              const SizedBox(height: 32),
+              FadeInUp(
+                child: _buildExercisePill(Icons.headphones_rounded, 'Escucha y Elige', AppTheme.secondaryColor),
               ),
-            ),
-            const SizedBox(height: 12),
-          ],
+              const SizedBox(height: 12),
+              FadeInUp(
+                child: _buildExercisePill(Icons.grid_view_rounded, 'Une el Audio', AppTheme.warningColor),
+              ),
+              const Spacer(),
+              FadeInUp(
+                child: ElevatedButton(
+                  onPressed: () => setState(() => _phase = 1),
+                  child: const Text('¡EMPEZAR LECCIÓN!'),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
         ),
       ),
     );
@@ -265,63 +254,63 @@ class _LessonScreenState extends State<LessonScreen> {
     final starsEarned = _lastStars;
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Spacer(),
-              ZoomIn(
-                child: const Icon(Icons.emoji_events_rounded, size: 100, color: AppTheme.warningColor),
-              ),
-              const SizedBox(height: 24),
-              FadeInUp(
-                child: const Text(
-                  '¡Lección Completada!',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 600),
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Spacer(),
+                ZoomIn(
+                  child: const Icon(Icons.emoji_events_rounded, size: 100, color: AppTheme.warningColor),
                 ),
-              ),
-              const SizedBox(height: 20),
-              FadeInUp(
-                delay: const Duration(milliseconds: 200),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    5,
-                    (i) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      child: ElasticIn(
-                        delay: Duration(milliseconds: 300 + i * 150),
-                        child: Icon(
-                          Icons.star_rounded,
-                          size: 52,
-                          color: i < starsEarned ? AppTheme.warningColor : AppTheme.lightGray,
+                const SizedBox(height: 24),
+                FadeInUp(
+                  child: const Text(
+                    '¡Lección Completada!',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                FadeInUp(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      5,
+                      (i) => Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: ElasticIn(
+                          delay: Duration(milliseconds: 300 + i * 150),
+                          child: Icon(
+                            Icons.star_rounded,
+                            size: 52,
+                            color: i < starsEarned ? AppTheme.warningColor : AppTheme.lightGray,
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const Spacer(),
-              FadeInUp(
-                delay: const Duration(milliseconds: 600),
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('¡CONTINUAR!'),
+                const Spacer(),
+                FadeInUp(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('¡CONTINUAR!'),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              FadeInUp(
-                delay: const Duration(milliseconds: 700),
-                child: TextButton(
-                  onPressed: () {
-                    setState(() => _phase = 0);
-                  },
-                  child: const Text('Repetir lección', style: TextStyle(color: Colors.grey)),
+                const SizedBox(height: 12),
+                FadeInUp(
+                  child: TextButton(
+                    onPressed: () {
+                      setState(() => _phase = 0);
+                    },
+                    child: const Text('Repetir lección', style: TextStyle(color: Colors.grey)),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

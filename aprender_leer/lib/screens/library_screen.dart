@@ -50,14 +50,20 @@ class _LibraryScreenState extends State<LibraryScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: _loadLibrary,
-        child: _loading 
-          ? const Center(child: CircularProgressIndicator())
-          : _sections.isEmpty
-            ? _buildEmptyState()
-            : _buildGallery(),
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: _loading 
+              ? const Center(child: CircularProgressIndicator())
+              : _sections.isEmpty
+                ? _buildEmptyState()
+                : _buildGallery(),
+          ),
+        ),
       ),
     );
   }
+
 
   Widget _buildEmptyState() {
     return Center(
@@ -100,12 +106,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
-                  height: 160,
+                  height: 180,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: 5, // Just show a few or fetch all
+                    itemCount: section.items.length,
                     itemBuilder: (context, i) {
-                      return _buildItemCard(section.id, 'Ítem ${i + 1}');
+                      final item = section.items[i];
+                      return _buildItemCard(section.id, item, i);
                     },
                   ),
                 ),
@@ -117,13 +124,18 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  Widget _buildItemCard(String categoryId, String title) {
+  Widget _buildItemCard(String categoryId, dynamic item, int index) {
+    String title = item.text;
+    // For stories, show a snippet
+    if (title.length > 50) title = "${title.substring(0, 47)}...";
+
     return Container(
-      width: 140,
+      width: 150,
       margin: const EdgeInsets.only(right: 16),
       child: GestureDetector(
-        onTap: () => _openLearningView(categoryId),
+        onTap: () => _openLearningView(categoryId, index),
         child: Container(
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
@@ -135,14 +147,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.play_circle_fill, size: 48, color: AppTheme.primaryColor),
-              const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+              Icon(Icons.play_circle_fill, size: 42, color: AppTheme.primaryColor),
+              const SizedBox(height: 12),
+              Expanded(
                 child: Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textColor),
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textColor, fontSize: 13),
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -152,19 +165,20 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  void _openLearningView(String categoryId) async {
+  void _openLearningView(String categoryId, int index) async {
     // Fetch items for this category
     showDialog(
       context: context,
       barrierColor: Colors.black87,
-      builder: (context) => _LearningDialog(categoryId: categoryId),
+      builder: (context) => _LearningDialog(categoryId: categoryId, initialIndex: index),
     ).then((_) => _loadLibrary()); // Refresh gems/stats if needed
   }
 }
 
 class _LearningDialog extends StatefulWidget {
   final String categoryId;
-  const _LearningDialog({required this.categoryId});
+  final int initialIndex;
+  const _LearningDialog({required this.categoryId, this.initialIndex = 0});
 
   @override
   State<_LearningDialog> createState() => _LearningDialogState();
@@ -172,13 +186,14 @@ class _LearningDialog extends StatefulWidget {
 
 class _LearningDialogState extends State<_LearningDialog> {
   List<dynamic> _items = [];
-  int _currentIndex = 0;
+  late int _currentIndex;
   bool _loading = true;
   bool _rewarded = false;
 
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialIndex;
     _loadItems();
   }
 
@@ -207,7 +222,7 @@ class _LearningDialogState extends State<_LearningDialog> {
         AudioService().playSuccess();
         setState(() => _rewarded = true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('¡Excelente! +5 Gemas ganadas'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('¡Excelente! +1 Estrella ganada'), backgroundColor: Colors.green),
         );
       } catch (e) {
         debugPrint('Error claiming reward: $e');
