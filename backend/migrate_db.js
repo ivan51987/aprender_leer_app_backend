@@ -5,6 +5,10 @@ async function migrate() {
     console.log('Migrando base de datos...');
     await pool.query('ALTER TABLE aprendidos ADD COLUMN IF NOT EXISTS stars INTEGER NOT NULL DEFAULT 1;');
     console.log('Columna "stars" añadida a "aprendidos".');
+    
+    await pool.query('ALTER TABLE ninos DROP COLUMN IF EXISTS pais;');
+    console.log('Columna "pais" eliminada de "ninos".');
+    
     process.exit(0);
   } catch (err) {
     console.error('Error migrando:', err);

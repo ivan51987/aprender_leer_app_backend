@@ -22,6 +22,9 @@ async function initDB() {
     CREATE TABLE IF NOT EXISTS ninos (
       id SERIAL PRIMARY KEY,
       nombre VARCHAR(255) NOT NULL,
+      apellidos VARCHAR(255),
+      device_id VARCHAR(255),
+      nombre_busqueda TEXT,
       fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 

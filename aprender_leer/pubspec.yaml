@@ -38,6 +38,7 @@ dependencies:
   provider: ^6.1.2
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.10+1
+  device_info_plus: ^10.1.0
 
 dev_dependencies:
   flutter_test:

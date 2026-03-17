@@ -63,15 +63,25 @@ class ApiService {
     }
   }
 
-  /// Register a new child via backend API
-  Future<Map<String, dynamic>> registerNino(String nombre) async {
+  /// Register a new child via backend API with composite identification
+  Future<Map<String, dynamic>> registerNino({
+    required String nombre, 
+    String? apellidos, 
+    String? pais, 
+    String? deviceId,
+  }) async {
     final uri = Uri.parse('$baseUrl/api/ninos');
-    print('Mobile: Intentando registrar niño: $nombre en $uri');
+    print('Mobile: Intentando registrar niño: $nombre $apellidos en $uri');
     try {
       final response = await http.post(
         uri,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'nombre': nombre}),
+        body: jsonEncode({
+          'nombre': nombre,
+          'apellidos': apellidos,
+          'pais': pais,
+          'device_id': deviceId,
+        }),
       ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {

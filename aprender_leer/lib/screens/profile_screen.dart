@@ -23,6 +23,7 @@ class ProfileScreenState extends State<ProfileScreen> {
   int _rank = 0;
   List<dynamic> _leaderboard = [];
   String _nombre = 'Amiguito';
+  String _apellidos = '';
 
   @override
   void initState() {
@@ -47,7 +48,11 @@ class ProfileScreenState extends State<ProfileScreen> {
         final stats = results[0] as Map<String, dynamic>;
         
         if (mounted) {
+          final apellidosFromApi = (stats['apellidos'] ?? '').toString().trim();
+          final nombreFromApi = (stats['nombre'] ?? _nombre).toString().trim();
           setState(() {
+            _nombre = nombreFromApi;
+            _apellidos = apellidosFromApi;
             _level = stats['level'] ?? 1;
             _streak = stats['streak'] ?? 0;
             _gems = stats['gems'] ?? 0;
@@ -106,7 +111,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          '¡Hola, $_nombre!', 
+                          '¡Hola, ${_apellidos.isNotEmpty ? '$_nombre $_apellidos' : _nombre}!', 
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                         ),
@@ -193,7 +198,8 @@ class ProfileScreenState extends State<ProfileScreen> {
         children: _leaderboard.asMap().entries.map((entry) {
           int idx = entry.key;
           var item = entry.value;
-          bool isMe = (item['nombre'] == _nombre);
+          final fullName = (item['nombre_completo'] ?? item['nombre'] ?? '').toString();
+          bool isMe = (fullName.isNotEmpty && fullName == '${_nombre}${_apellidos.isNotEmpty ? ' $_apellidos' : ''}');
           
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -209,7 +215,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item['nombre'], style: TextStyle(fontWeight: isMe ? FontWeight.bold : FontWeight.w500, fontSize: 16)),
+                      Text(fullName, style: TextStyle(fontWeight: isMe ? FontWeight.bold : FontWeight.w500, fontSize: 16)),
                       Text('Nivel ${item['level']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                     ],
                   ),

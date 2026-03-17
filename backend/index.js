@@ -316,16 +316,23 @@ app.get("/api/ninos/:id/stats", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // 1. Stars from "Aprender" (juego_tipo = 'lesson')
+    // 0. Basic info
+    const ninoResult = await pool.query("SELECT nombre, apellidos FROM ninos WHERE id = $1", [id]);
+    if (ninoResult.rows.length === 0) {
+      return res.status(404).json({ error: "Niño no encontrado" });
+    }
+    const { nombre, apellidos } = ninoResult.rows[0];
+
+    // 1. Stars from "Aprender" (lesson, word_builder, audio_match, quiz, discovery son todos de Aprender)
     const aprenderResult = await pool.query(
-      "SELECT SUM(estrellas) as stars FROM puntuaciones WHERE nino_id = $1 AND juego_tipo = 'lesson'",
+      "SELECT SUM(estrellas) as stars FROM puntuaciones WHERE nino_id = $1 AND juego_tipo IN ('lesson', 'word_builder', 'audio_match', 'quiz', 'discovery')",
       [id],
     );
     const starsAprender = parseInt(aprenderResult.rows[0].stars || 0);
 
-    // 2. Stars from "Desafíos" (juego_tipo IN ('completar', 'sopa', ...))
+    // 2. Stars from "Desafíos" (solo tipos de desafío reales, no tipos de aprender)
     const desafiosResult = await pool.query(
-      "SELECT SUM(estrellas) as stars FROM puntuaciones WHERE nino_id = $1 AND juego_tipo != 'lesson'",
+      "SELECT SUM(estrellas) as stars FROM puntuaciones WHERE nino_id = $1 AND juego_tipo NOT IN ('lesson', 'word_builder', 'audio_match', 'quiz', 'discovery')",
       [id],
     );
     const starsDesafios = parseInt(desafiosResult.rows[0].stars || 0);
@@ -392,6 +399,8 @@ app.get("/api/ninos/:id/stats", async (req, res) => {
     });
 
     res.json({
+      nombre,
+      apellidos,
       level,
       gems,
       streak,
@@ -409,39 +418,79 @@ app.get("/api/ninos/:id/stats", async (req, res) => {
 
 app.post("/api/ninos", async (req, res) => {
   try {
-    const { nombre } = req.body;
+    const { nombre, apellidos, device_id } = req.body;
     if (!nombre || nombre.trim() === "") {
       return res.status(400).json({ error: "El nombre es requerido" });
     }
 
-    const trimmedName = nombre.trim();
+    const cleanNombre = nombre.trim();
+    const cleanApellidos = (apellidos || "").trim();
+    const cleanDeviceId = (device_id || "Unknown").trim();
 
-    // Check if child already exists (accent and case insensitive)
-    const normalizedQuery = `
-      SELECT id, nombre FROM ninos 
-      WHERE TRANSLATE(LOWER(nombre), 'áéíóúüÁÉÍÓÚÜñÑ', 'aeiouuaeiounn') = 
+    // Helper to normalize strings for comparison
+    const normalize = (str) =>
+      str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // Remove accents
+        .replace(/ñ/g, "n")
+        .replace(/[^a-z0-9]/g, ""); // Remove non-alphanumeric
+
+    const fullName = `${cleanNombre} ${cleanApellidos}`.trim();
+    const normalizedNew = normalize(fullName);
+
+    // 1. Check for matches on the SAME DEVICE
+    const deviceQuery = `
+      SELECT id, nombre, apellidos, device_id, nombre_busqueda 
+      FROM ninos 
+      WHERE device_id = $1
+    `;
+    const deviceResult = await pool.query(deviceQuery, [cleanDeviceId]);
+
+    for (const existing of deviceResult.rows) {
+      const normalizedExisting = existing.nombre_busqueda || normalize(`${existing.nombre} ${existing.apellidos}`);
+      
+      // If one contains the other, we consider it the same person on the same device
+      if (normalizedNew.includes(normalizedExisting) || normalizedExisting.includes(normalizedNew)) {
+        console.log(`Backend: Match por similitud en dispositivo encontrado: ${fullName} matches ${existing.nombre} ${existing.apellidos}`);
+        return res.json({
+          success: true,
+          child: existing,
+          existing: true,
+        });
+      }
+    }
+
+    // 2. If no device match, check for GLOBAL EXACT match (Security/Duplication check)
+    const exactQuery = `
+      SELECT id, nombre, apellidos FROM ninos 
+      WHERE TRANSLATE(LOWER(nombre || ' ' || COALESCE(apellidos, '')), 'áéíóúüÁÉÍÓÚÜñÑ', 'aeiouuaeiounn') = 
             TRANSLATE(LOWER($1), 'áéíóúüÁÉÍÓÚÜñÑ', 'aeiouuaeiounn')
     `;
-    const checkResult = await pool.query(normalizedQuery, [trimmedName]);
+    const exactResult = await pool.query(exactQuery, [fullName]);
 
-    if (checkResult.rows.length > 0) {
-      console.log(
-        `Backend: Niño existente encontrado: ${trimmedName} (ID: ${checkResult.rows[0].id})`,
-      );
+    if (exactResult.rows.length > 0) {
       return res.json({
         success: true,
-        child: checkResult.rows[0],
+        child: exactResult.rows[0],
         existing: true,
       });
     }
 
-    const result = await pool.query(
-      "INSERT INTO ninos (nombre) VALUES ($1) RETURNING id, nombre",
-      [trimmedName],
-    );
-    console.log(
-      `Backend: Nuevo niño registrado: ${trimmedName} (ID: ${result.rows[0].id})`,
-    );
+    // 3. Create new record
+    const insertQuery = `
+      INSERT INTO ninos (nombre, apellidos, device_id, nombre_busqueda) 
+      VALUES ($1, $2, $3, $4) 
+      RETURNING id, nombre, apellidos
+    `;
+    const result = await pool.query(insertQuery, [
+      cleanNombre,
+      cleanApellidos,
+      cleanDeviceId,
+      normalizedNew,
+    ]);
+
+    console.log(`Backend: Nuevo registro: ${fullName} (${cleanDeviceId})`);
     res.json({ success: true, child: result.rows[0], existing: false });
   } catch (error) {
     console.error("Backend: Error registrando/buscando niño:", error);
@@ -490,7 +539,7 @@ app.post("/api/ninos/:id/learn", async (req, res) => {
 app.get("/api/leaderboard", async (req, res) => {
   try {
     const query = `
-      SELECT n.id, n.nombre, 
+      SELECT n.id, n.nombre, n.apellidos,
              COALESCE((SELECT SUM(estrellas) FROM puntuaciones WHERE nino_id = n.id), 0) +
              COALESCE((SELECT SUM(stars) FROM aprendidos WHERE nino_id = n.id), 0) as total_stars
       FROM ninos n
@@ -500,6 +549,7 @@ app.get("/api/leaderboard", async (req, res) => {
     const result = await pool.query(query);
     const leaderboard = result.rows.map((row) => ({
       ...row,
+      nombre_completo: [row.nombre, row.apellidos].filter(Boolean).join(' '),
       level: Math.floor(parseInt(row.total_stars) / 10) + 1,
     }));
     res.json(leaderboard);

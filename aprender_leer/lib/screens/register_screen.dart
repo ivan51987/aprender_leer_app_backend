@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'dart:io';
 import '../services/api_service.dart';
 import '../services/progress_service.dart';
 import '../core/theme/app_theme.dart';
@@ -13,13 +15,28 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
+  final _surnamesController = TextEditingController();
   final _apiService = ApiService();
   final _progressService = ProgressService();
   bool _isLoading = false;
   String? _errorMessage;
 
+  Future<String> _getDeviceId() async {
+    final deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      final androidInfo = await deviceInfo.androidInfo;
+      return androidInfo.id;
+    } else if (Platform.isIOS) {
+      final iosInfo = await deviceInfo.iosInfo;
+      return iosInfo.identifierForVendor ?? 'unknown_ios';
+    }
+    return 'unknown_device';
+  }
+
   void _register() async {
     final name = _nameController.text.trim();
+    final surnames = _surnamesController.text.trim();
+    
     if (name.isEmpty) {
       setState(() {
         _errorMessage = 'Por favor, ingresa tu nombre.';
@@ -33,13 +50,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      final response = await _apiService.registerNino(name);
+      final deviceId = await _getDeviceId();
+      print('RegisterScreen: Device ID capturado: $deviceId');
+
+      final response = await _apiService.registerNino(
+        nombre: name,
+        apellidos: surnames,
+        deviceId: deviceId,
+      );
+      
       print('RegisterScreen: Respuesta recibida del API');
       if (response['success'] == true && response['child'] != null) {
         final childData = response['child'];
         final int id = (childData['id'] is String) ? int.parse(childData['id']) : (childData['id'] as int);
-        print('RegisterScreen: Guardando progreso local para el niño ID: $id');
-        await _progressService.registerNino(id, childData['nombre']);
+        
+        // Combine name and surnames for local storage
+        final String fullName = "${childData['nombre']} ${childData['apellidos'] ?? ""}".trim();
+        print('RegisterScreen: Guardando progreso local para: $fullName (ID: $id)');
+        await _progressService.registerNino(id, fullName);
         
         if (!mounted) return;
         print('RegisterScreen: Navegando a HomeScreen');
@@ -86,12 +114,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     children: [
                       const Icon(
                         Icons.face_retouching_natural,
-                        size: 80,
+                        size: 70,
                         color: AppTheme.primaryColor,
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        '¡Hola!',
+                        '¡Bienvenido!',
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: AppTheme.primaryColor,
@@ -99,23 +127,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '¿Cómo te llamas?',
-                        style: Theme.of(context).textTheme.titleLarge,
+                        'Crea tu perfil para jugar',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey),
                       ),
                       const SizedBox(height: 32),
-                      TextField(
+                      
+                      // Name field
+                      _buildTextField(
                         controller: _nameController,
-                        decoration: InputDecoration(
-                          hintText: 'Tu nombre',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          errorText: _errorMessage,
-                        ),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-                        textCapitalization: TextCapitalization.words,
+                        label: 'Nombre(s)',
+                        hint: 'Escribe tu nombre',
+                        icon: Icons.person_outline,
                       ),
+                      const SizedBox(height: 16),
+                      
+                      // Surnames field
+                      _buildTextField(
+                        controller: _surnamesController,
+                        label: 'Apellido(s)',
+                        hint: 'Escribe tus apellidos',
+                        icon: Icons.people_outline,
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      if (_errorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Text(_errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                        ),
+                        
                       const SizedBox(height: 32),
                       SizedBox(
                         width: double.infinity,
@@ -131,9 +171,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: _isLoading
                               ? const CircularProgressIndicator(color: Colors.white)
                               : const Text(
-                                  '¡A jugar!',
+                                  '¡EMPEZAR A JUGAR!',
                                   style: TextStyle(
-                                    fontSize: 20,
+                                    fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -150,9 +190,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
     ),);
   }
 
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 20, color: Colors.grey),
+            const SizedBox(width: 8),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: hint,
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          ),
+          style: const TextStyle(fontSize: 18),
+          textCapitalization: TextCapitalization.words,
+        ),
+      ],
+    );
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
+    _surnamesController.dispose();
     super.dispose();
   }
 }
