@@ -321,17 +321,16 @@ class _PathViewState extends State<_PathView> {
                               ),
                             ],
                           ),
-                          child: Flexible(
-                            child: Text(
-                              title,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w900, 
-                                fontSize: 13,
-                                color: isUnlocked ? AppTheme.textColor : Colors.grey,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                          child: Text(
+                            title,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900, 
+                              fontSize: 13,
+                              color: isUnlocked ? AppTheme.textColor : Colors.grey,
                             ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
